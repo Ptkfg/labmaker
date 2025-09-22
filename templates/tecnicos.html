@@ -11,12 +11,50 @@
 </head>
 <body>
   <h1>{{ tecnicos }}</h1>
-  <table>
+  <h2>Adicionar novos equioamentos Tecnicos </h2>
+  <form method="post" action="tecnicos.html">
+      <label>Nome</label><br>
+      <input type="text" name="nome" required><br><br>
+
+      <label>Garntia</label><br>
+      <input type="text" name="garantia" required><br><br>
+
+      <label>Fabricante/Marca</label><br>
+      <input type="text" name="fabricante_marca" required><br><br>
+
+      <label>Modelo</label><br>
+      <input type="text" name="modelo" required><br><br>
+
+      <label>Número de série</label><br>
+      <input type="text" name="numero_serie" required><br><br>
+
+      <label>Data de fabricação</label><br>
+      <input type="text" name="data_fabricacao" required><br><br>
+
+      <label>Validade</label><br>
+      <input type="text" name="validade" required><br><br>
+
+      <label>Condição</label><br>
+      <input type="text" name="condicao" required><br><br>
+
+      <label>Localização</label><br>
+      <input type="text" name="localizacao" required><br><br>
+
+      <label>Patrimônio</label><br>
+      <input type="text" name="patrimonio" required><br><br>
+
+      <label>Quantidade</label><br>
+      <input type="text" name="quantidade" required><br><br>
+
+      <button type="submit">Adicionar</button>
+  </form>
+   <table>
     <thead>
       <tr>
         {% for coluna in dados[0].keys() %}
           <th>{{ coluna }}</th>
         {% endfor %}
+        <th>Ações</th>
       </tr>
     </thead>
     <tbody>
@@ -25,9 +63,21 @@
           {% for valor in linha.values() %}
             <td>{{ valor }}</td>
           {% endfor %}
+          <td>
+            <form method="POST" action="/ti/deletar">
+              <input type="hidden" name="nome" value="{{ linha.nome }}">
+              <button type="submit">Excluir</button>
+            </form>
+          </td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
+<br><br>
+<a href="/" style="text-decoration: none;">
+  <button style="background-color: #007BFF; color: white; border: none; padding: 10px 20px; cursor: pointer;">
+    Voltar para a Página Principal
+  </button>
+</a>
 </body>
 </html>

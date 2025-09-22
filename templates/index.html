@@ -1,11 +1,32 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
+    <div>
     <title>LabMaker</title>
+    </div>
 </head>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <body>
-    <h1>Bem-vindo ao LabMaker</h1>
-    <p>Essa é a página inicial do seu projeto Flask.</p>
+    <h1>Bem-vindo ao Laboratório Maker</h1>
+    <p>Sistema de gestão de equipamentos tecnicos, Ti, Gamer, Robotica</p>
+
+    <nav>
+        <ul>
+            <li><a href="ti">Equipamentos de Ti</a></li>
+            <li><a href="tecnicos">Equipamentos Técnicos</a></li>
+            <li><a href="notasFiscais">Notas Fiscais</a></li>
+            <li><a href="maker">Equipamentos de consumo</a></li>
+            <li><a href="gamer">Equipamentos Gamer</a></li>
+            <li><a href="formulario">Formulário Geral</a></li>
+        </ul>
+    </nav>
+
+    <p>Bem-vindo ao sistema LabMaker. Escolha uma categoria no menu acima para começar.</p>
+
+<footer id="footer">
+    <div class="flex-container"></div><br><br>
+</footer>
+
 </body>
 </html>

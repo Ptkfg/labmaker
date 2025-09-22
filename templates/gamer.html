@@ -56,30 +56,29 @@
     <button type="submit">Adicionar</button>
   </form>
 
+  <h2>Equipamentos cadastrados</h2>
   <table>
     <thead>
       <tr>
-        {% for coluna in dados[0].keys() %}
-          <th>{{ coluna }}</th>
-        {% endfor %}
-        <th>Ações</th>
+        <th>Nome</th>
+        <th>Categoria</th>
+        <th>Quantidade</th>
       </tr>
     </thead>
     <tbody>
-      {% for linha in dados %}
-        <tr>
-          {% for valor in linha.values() %}
-            <td>{{ valor }}</td>
-          {% endfor %}
-          <td>
-            <form method="POST" action="/gamer/deletar">
-              <input type="hidden" name="nome" value="{{ linha.nome }}">
-              <button type="submit">Excluir</button>
-            </form>
-          </td>
-        </tr>
+      {% for item in dados %}
+      <tr>
+        <td>{{ item.nome }}</td>
+        <td>{{ item.categoria }}</td>
+        <td>{{ item.quantidade }}</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  <br><br>
+  <a href="/">
+    <button>Voltar para a Página Principal</button>
+  </a>
 </body>
 </html>

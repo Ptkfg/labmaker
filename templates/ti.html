@@ -2,21 +2,63 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>{{ titulo }}</title>
+  <title>Equipamentos TI</title>
   <style>
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; }
+    button { background-color: #007BFF; color: white; border: none; padding: 6px 12px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
   </style>
 </head>
 <body>
-  <h1>{{ ti }}</h1>
+  <h1>Equipamentos TI</h1>
+
+  <h2>Adicionar novo equipamento</h2>
+  <form method="POST" action="/ti">
+    <label>Nome:</label><br>
+    <input type="text" name="nome" required><br><br>
+
+    <label>Garantia:</label><br>
+    <input type="text" name="garantia" required><br><br>
+
+    <label>Fabricante/Marca:</label><br>
+      <input type="text" name="fabricante_marca" required><br><br>
+
+    <label>Modelo:</label><br>
+      <input type="text" name="modelo" required><br><br>
+
+    <label>Número de série:</label><br>
+      <input type="text" name="numero_serie" required><br><br>
+
+    <label>Data de fabricação:</label><br>
+      <input type="text" name="data_fabricacao" required><br><br>
+
+    <label>Validade:</label><br>
+      <input type="text" name="validade" required><br><br>
+
+    <label>Condição:</label><br>
+      <input type="text" name="condicao" required><br><br>
+
+    <label>Localização:</label><br>
+      <input type="text" name="localizacao" required><br><br>
+
+    <label>Patrimônio:</label><br>
+      <input type="text" name="patrimonio" required><br><br>
+
+    <label>Quantidade:</label><br>
+    <input type="number" name="quantidade" required><br><br>
+
+    <button type="submit">Adicionar</button>
+  </form>
+
   <table>
     <thead>
       <tr>
         {% for coluna in dados[0].keys() %}
           <th>{{ coluna }}</th>
         {% endfor %}
+        <th>Ações</th>
       </tr>
     </thead>
     <tbody>
@@ -25,9 +67,21 @@
           {% for valor in linha.values() %}
             <td>{{ valor }}</td>
           {% endfor %}
+          <td>
+            <form method="POST" action="/ti/deletar">
+              <input type="hidden" name="nome" value="{{ linha.nome }}">
+              <button type="submit">Excluir</button>
+            </form>
+          </td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
+<br><br>
+<a href="/" style="text-decoration: none;">
+  <button style="background-color: #007BFF; color: white; border: none; padding: 10px 20px; cursor: pointer;">
+    Voltar para a Página Principal
+  </button>
+</a>
 </body>
 </html>
