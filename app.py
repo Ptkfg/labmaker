@@ -1,204 +1,260 @@
-import os       # caminhos de arquivo
-import pandas as pd
-from flask import Flask, render_template, request, redirect, session
-from flask_sqlalchemy import SQLAlchemy
+﻿import os
 from datetime import datetime
+from flask import Flask, render_template, request, redirect, flash, url_for
+from sqlalchemy.testing.pickleable import User
+from db import db
+from models_equipamentos import EquipamentosTecnicos, EquipamentosTi, EquipamentosGamer, NotasFiscais, EquipamentosConsumo, RelatorioAtividade, Usuario
+from flask_login import LoginManager, login_user, current_user, login_required, logout_user
+from werkzeug.security import check_password_hash
 
-BASE = os.path.dirname(os.path.abspath(__file__))   #pega o caminho da pasta onde esta o app.py
-TEMPLATES = os.path.join(BASE, 'templates')
 
-app = Flask(__name__, template_folder=TEMPLATES)
 
-@app.route('/')
-def index():
-    caminho_ti = os.path.join(BASE, 'data', 'cadastro_equipamentos_ti.csv')
-    df = pd.read_csv(caminho_ti, encoding='latin1')
-    total = len(df)
-    return render_template('index.html', total_equipamentos=total)
+# inicializa a app
+app = Flask(__name__, instance_relative_config=True)
+os.makedirs(app.instance_path, exist_ok=True)
 
-@app.route('/itens')         #le o arquivo csv e converte os dados p/ uma lista e envia a lista para itens.html
-def itens():
-    caminho_csv = os.path.join(BASE, 'data', 'itens.csv')
-    df = pd.read_csv(caminho_csv)
-    itens = df.to_dict(orient='records')
-    return render_template('itens.html', itens=itens)
+# configurações
+app.config.from_mapping(
+    SECRET_KEY="dev",
+    SQLALCHEMY_DATABASE_URI=f"sqlite:///{os.path.join(app.instance_path, 'labmaker.db').replace(os.sep, '/')}",
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
+)
+
+# inicializa a extensão sem criar ciclo
+db.init_app(app)
+
+#inicia o login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view= 'login'
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("Logout realizado com sucesso.", "info")
+    return redirect(url_for('index.html'))
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        senha = request.form['senha']
+        usuario = Usuario.query.filter_by(email=email).first()
+        if usuario and check_password_hash(usuario.senha, senha):
+            login_user(usuario)
+            flash("Login realizado com sucesso.")
+            next_page = request.args.get("next")
+            return redirect(next_page or url_for('home'))
+        else:
+            flash("Email ou senha inválidos.")
+    return render_template("login.html")
+
+
+@app.route('/cadastro', methods=['GET', 'POST'])
+def cadastro():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        email = request.form['email']
+        senha = request.form['senha']
+        novo_usuario = Usuario(nome=nome, email=email, senha=senha)
+        db.session.add(novo_usuario)
+        db.session.commit()
+        flash("Cadastro realizado com sucesso!", "success")
+        return redirect(url_for('login'))
+        perfil = request.form['perfil']
+        novo_usuario = Usuario(nome=nome, email=email, senha=senha, perfil=perfil)
+    return render_template('cadastro.html')
+
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/maker", methods=["GET", "POST"])
+def maker():
+    if request.method == "POST":
+        try:
+            now = EquipamentosConsumo(
+                nome=request.form.get('nome', ''),
+                garantia=request.form.get('garantia', ''),
+                cor=request.form.get('cor', ''),
+                fabricante_marca=request.form.get('fabricante_marca', ''),
+                modelo=request.form.get('modelo', ''),
+                numero_serie=request.form.get('numero_serie', ''),
+                data_fabricacao=request.form.get('data_fabricacao', ''),
+                validade=request.form.get('validade') in ('on', '1', 'true', 'True'),
+                condicao=request.form.get('condicao_localizacao', ''),
+                localizacao=request.form.get('condicao_localizacao', ''),
+                patrimonio=request.form.get('patrimonio', ''),
+                quantidade=int(request.form.get('quantidade') or 0)
+            )
+            db.session.add(now)
+            db.session.commit()
+            flash("Registro salvo com sucesso", "success")
+            return redirect("/maker")
+        except Exception:
+            db.session.rollback()
+            import traceback; traceback.print_exc()
+            flash("Erro ao salvar registro, veja o console", "error")
+            return redirect("/maker")
+
+    equipamentos = EquipamentosConsumo.query.all()
+    return render_template("maker.html", maker="LabMaker", dados=equipamentos)
+
+@app.route('/formulario', methods=['GET', 'POST'])
+def formulario():
+    if request.method == "POST":
+        try:
+            relatorio = RelatorioAtividade(
+                aluno=request.form.get('aluno', '').strip(),
+                atividade=request.form.get('atividade', '').strip(),
+                professor_responsavel=request.form.get('professor_responsavel', '').strip(),
+                data=request.form.get('data', '').strip(),
+                observacao=request.form.get('observacao', '').strip()
+            )
+            db.session.add(relatorio)
+            db.session.commit()
+            flash("Relatório enviado com sucesso!", "success")
+            return redirect("/formulario")
+        except Exception:
+            db.session.rollback()
+            import traceback; traceback.print_exc()
+            flash("Erro ao enviar relatório", "error")
+            return redirect("/formulario")
+
+    relatorios = RelatorioAtividade.query.all()
+    return render_template("formulario.html", relatorios=relatorios)
+
+
 @app.route('/gamer', methods=['GET', 'POST'])
 def gamer():
     if request.method == 'POST':
-        novo = EquipamentosGamer(
-            nome=request.form['nome'],
-            categoria=request.form['categoria'],
-            quantidade=request.form['quantidade']
-        )
-        db.session.add(novo)
-        db.session.commit()
-        return redirect('/gamer')
+        try:
+            novo = EquipamentosGamer(
+                nome=request.form.get('nome',''),
+                categoria=request.form.get('categoria',''),
+                quantidade=int(request.form.get('quantidade') or 0)
+            )
+            db.session.add(novo)
+            db.session.commit()
+            return redirect('/gamer')
+        except Exception:
+            db.session.rollback()
+            flash("Erro ao inserir gamer", "error")
+            return redirect('/gamer')
 
     equipamentos = EquipamentosGamer.query.all()
     return render_template('gamer.html', dados=equipamentos)
 
+
 @app.route('/tecnicos', methods=['GET', 'POST'])
 def tecnicos():
     if request.method == 'POST':
-        novo = EquipamentosTecnicos (
-            nome = request.form['nome'],
-            garantia = request.form['garantia'],
-            fabricante_marca = request.form['fabricante_marca'],
-            modelo= request.form['modelo'],
-            numero_serie= request.form['numero_serie'],
-            data_fabricacao= request.form['data_fabricacao'],
-            validade= request.form['validade'],
-            condicao= request.form['condicao'],
-            localizacao= request.form['localizacao'],
-            patrimonio= request.form['patrimonio'],
-            quantidade= request.form['quantidade'],
-        )
-        db.session.add(novo)
-        db.session.commit()
-        return redirect('/tecnicos')
+        try:
+            novo = EquipamentosTecnicos(
+                nome=request.form.get('nome',''),
+                garantia=request.form.get('garantia',''),
+                fabricante_marca=request.form.get('fabricante_marca',''),
+                modelo=request.form.get('modelo',''),
+                numero_serie=request.form.get('numero_serie',''),
+                data_fabricacao=request.form.get('data_fabricacao',''),
+                validade=request.form.get('validade') in ('on','1','true','True'),
+                condicao=request.form.get('condicao',''),
+                localizacao=request.form.get('localizacao',''),
+                patrimonio=request.form.get('patrimonio',''),
+                quantidade=int(request.form.get('quantidade') or 0)
+            )
+            db.session.add(novo)
+            db.session.commit()
+            return redirect('/tecnicos')
+        except Exception:
+            db.session.rollback()
+            flash("Erro ao inserir técnico", "error")
+            return redirect('/tecnicos')
 
-    equipamentos = EquipamentosTecnicos.query.all ()
-    return render_template('tecnicos.html', dados=equipamentos)
+    equipamentos = EquipamentosTecnicos.query.all()
+    dados = [e.__dict__ for e in equipamentos]
+    for d in dados:
+        d.pop('_sa_instance_state', None)  # remove metadado interno do sqlachemy
+    return render_template('tecnicos.html', dados=dados)
 
 
 @app.route('/ti', methods=['GET', 'POST'])
 def ti():
     if request.method == 'POST':
-        novo = EquipamentosTi(
-            nome=request.form['nome'],
-            garantia=float(request.form['garantia']),
-            fabricante_marca=request.form['fabricante_marca'],
-            modelo=request.form['modelo'],
-            numero_serie=request.form['numero_serie'],
-            data_fabricacao=datetime.strptime(request.form['data_fabricacao'], '%Y-%m-%d'),
-            validade=request.form.get('validade') == 'on',
-            condicao=request.form['condicao'],
-            localizacao=request.form['localizacao'],
-            patrimonio=request.form['patrimonio'],
-            quantidade=int(request.form['quantidade'])
-        )
-        db.session.add(novo)
-        db.session.commit()
-        return redirect('/ti')
+        try:
+            data_raw = request.form.get('data_fabricacao','').strip()
+            try:
+                data_fab = datetime.strptime(data_raw, '%Y-%m-%d').date() if data_raw else None
+            except Exception:
+                data_fab = None
+
+            novo = EquipamentosTi(
+                nome=request.form.get('nome',''),
+                garantia=float(request.form.get('garantia') or 0),
+                fabricante_marca=request.form.get('fabricante_marca',''),
+                modelo=request.form.get('modelo',''),
+                numero_serie=request.form.get('numero_serie',''),
+                data_fabricacao=data_fab,
+                validade=request.form.get('validade') in ('on','1','true','True'),
+                condicao=request.form.get('condicao',''),
+                localizacao=request.form.get('localizacao',''),
+                patrimonio=request.form.get('patrimonio',''),
+                quantidade=int(request.form.get('quantidade') or 0)
+            )
+            db.session.add(novo)
+            db.session.commit()
+            return redirect('/ti')
+        except Exception:
+            db.session.rollback()
+            flash("Erro ao inserir TI", "error")
+            return redirect('/ti')
 
     equipamentos = EquipamentosTi.query.all()
     return render_template('ti.html', dados=equipamentos)
 
+
 @app.route('/notasFiscais', methods=['GET', 'POST'])
 def notas_fiscais():
     if request.method == 'POST':
-        novo = NotasFiscais(
-            descricao_itens = request.form['descricao_itens'],
-            numero_nf = float(request.form['numero_nf']),
-            data_emissao = datetime.strptime(request.form['data_emissao'], '%Y-%m-%d'),
-            fornecedor = request.form['fornecedor'],
-            cnpj = float(request.form['cnpj']),
-            quantidade = int(request.form['quantidade']),
-            valor_total = float(request.form['valor_total'])
+        try:
+            novo = NotasFiscais(
+                descricao_itens=request.form.get('descricao_itens',''),
+                numero_nf=request.form.get('numero_nf',''),
+                data_emissao=datetime.strptime(request.form.get('data_emissao',''), '%Y-%m-%d') if request.form.get('data_emissao') else None,
+                fornecedor=request.form.get('fornecedor',''),
+                cnpj=request.form.get('cnpj',''),
+                quantidade=int(request.form.get('quantidade') or 0),
+                valor_total=float(request.form.get('valor_total') or 0.0)
+            )
+            db.session.add(novo)
+            db.session.commit()
+            return redirect('/notasFiscais')
+        except Exception:
+            db.session.rollback()
+            flash("Erro ao inserir nota fiscal", "error")
+            return redirect('/notasFiscais')
 
-        )
-        db.session.add(novo)
-        db.session.commit()
-        return redirect('/notasFiscais')
-
-    notas = NotasFiscais.query.all()
-    return render_template('notasFiscais.html', notas=notas)
-
-@app.route('/maker', methods=['GET', 'POST'])
-def maker():
-    if request.method == 'POST':
-        novo = EquipamentosConsumo(
-            nome = request.form['nome'],
-            garantia = request.form['garantia'],
-            cor = request.form['cor'],
-            fabricante_marca = request.form['fabricante_marca'],
-            modelo = request.form['modelo'],
-            numero_serie = request.form['numero_serie'],
-            data_fabricacao = datetime.strptime(request.form['data_fabricacao'], '%Y-%m-%d'),
-            validade = request.form.get('validade') == 'on',
-            condicao_localizacao = request.form['condicao_localizacao'],
-            patrimonio = request.form['patrimonio'],
-            quantidade = int(request.form['quantidade']),
-        )
-        db.session.add(novo)
-        db.session.commit()
-        return redirect('/maker')
-
-    consumo = EquipamentosConsumo.query.all()
-    return render_template('maker.html', consumo=consumo)
+    equipamentos = NotasFiscais.query.all()
+    dados = [e.__dict__ for e in equipamentos]
+    for d in dados:
+        d.pop('_sa_instance_state', None)
+    return render_template('notasFiscais.html', dados=dados)
 
 
-@app.route('/formulario')
-def formulario():
-    return render_template('formulario.html')
+# @app.route('/painel')
+# @login_required
+# def painel():
+#     return render_template('painel.html')
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///labmaker.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-
-class EquipamentosTi(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100))
-    garantia = db.Column(db.Float)
-    fabricante_marca = db.Column(db.String(100))
-    modelo = db.Column(db.String(100))
-    numero_serie = db.Column(db.String(100))
-    data_fabricacao = db.Column(db.DateTime)
-    validade = db.Column(db.Boolean)
-    condicao = db.Column(db.String(100))
-    localizacao = db.Column(db.String(100))
-    patrimonio = db.Column(db.String(100))
-    quantidade = db.Column(db.Integer)
-
-
-class EquipamentosTecnicos(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100))
-    garantia = db.Column(db.String(100))
-    fabricante_marca = db.Column(db.String(100))
-    modelo = db.Column(db.String(100))
-    numero_serie = db.Column(db.Float)
-    data_fabricacao = db.Column(db.DateTime)
-    validade = db.Column(db.String(100))
-    condicao = db.Column(db.String(100))
-    localizacao = db.Column(db.String(100))
-    patrimonio = db.Column(db.String(100))
-    quantidade = db.Column(db.Integer)
-
-class NotasFiscais(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    descricao_itens = db.Column(db.String(100))
-    numero_nf = db.Column(db.String(100))
-    data_emissao = db.Column(db.DateTime)
-    fornecedor = db.Column(db.String(100))
-    cnpj = db.Column(db.Float)
-    quantidade = db.Column(db.Integer)
-    valor_total = db.Column(db.Float)
-
-class EquipamentosConsumo(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100))
-    garantia = db.Column(db.String(100))
-    cor = db.Column(db.String(100))
-    fabricante_marca = db.Column(db.String(100))
-    modelo = db.Column(db.String(100))
-    numero_serie = db.Column(db.Float)
-    data_fabricacao = db.Column(db.DateTime)
-    validade = db.Column(db.String(100))
-    condicao_localizacao = db.Column(db.String(100))
-    patrimonio = db.Column(db.String(100))
-    quantidade = db.Column(db.Integer)
-
-class EquipamentosGamer(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100))
-    categoria = db.Column(db.String(100))
-    quantidade = db.Column(db.Integer)
-
-with app.app_context():
-    db.create_all()
-
-
+# ponto de entrada
 if __name__ == '__main__':
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True, host='127.0.0.1', port=5000)

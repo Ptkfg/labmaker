@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - LabMaker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% extends 'base.html' %}
+
+        {% block title %}Login - LabMaker{% endblock %}
+
+        {% block content %}
+        <h2>Login</h2>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <p>{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" name="senha" required>
+
+
+            <button type="submit">Entrar</button>
+        </form><br>
+         <button style="background-color: #007BFF; color: white; border: none; padding: 10px 20px; cursor: pointer;">
+    Voltar para a Página Principal
+        </button>
+        <p>Não tem conta? <a href="{{ url_for('cadastro') }}">Cadastre-se</a></p>
+        {% endblock %}
+    </div>
+</body>
+</html>

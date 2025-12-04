@@ -1,20 +1,39 @@
-<!-- templates/formulario.html -->
-<h1>Cadastrar novo item</h1>
-<form method="POST" action="/formulario">
-  <label>Nome:</label><br>
-  <input type="text" name="nome"><br><br>
 
-  <label>Categoria:</label><br>
-  <input type="text" name="categoria"><br><br>
+{% extends 'base.html' %}
 
-  <label>Quantidade:</label><br>
-  <input type="number" name="quantidade"><br><br>
+{% block title %}Login - LabMaker{% endblock %}
 
-  <button type="submit">Adicionar</button>
+{% block content %}
+<h2>Relatório de Atividades</h2>
+<div class="formulario">
+  <label for="nome">Nome do Aluno:</label><br>
+  <input type="text" id="nome">
+</div>
+
+  <label>Atividade Realizada:</label><br>
+  <textarea name="atividade" required></textarea><br><br>
+
+  <LABEL>Professor responsável:</LABEL><br>
+    <textarea name="professor" required></textarea><br><br>
+
+  <label>Data:</label><br>
+  <input type="date" name="data" required><br><br>
+
+  <label>Observações:</label><br>
+  <textarea name="observacoes"></textarea><br><br>
+
+  <button type="submit">Enviar Relatório</button>
 </form>
+
+<hr>
 <br><br>
-<a href="/" style="text-decoration: none;">
-  <button style="background-color: #007BFF; color: white; border: none; padding: 10px 20px; cursor: pointer;">
-    Voltar para a Página Principal
-  </button>
-</a>
+  <a href="/">
+    <button>Voltar para a Página Principal</button>
+  </a>
+<h3>Relatórios Enviados</h3>
+<ul>
+  {% for r in relatorios %}
+    <li><strong>{{ r.aluno }}</strong> — {{ r.atividade }} ({{ r.data }})</li>
+  {% endfor %}
+</ul>
+{% endblock %}

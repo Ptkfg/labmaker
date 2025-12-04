@@ -1,9 +1,142 @@
 body {
-  background-color: #f0f0f0;
+  margin: 0;
   font-family: Arial, sans-serif;
+  background-color: var(--iff-cinza-claro);
+  color: #222;;
 }
 
-h1 {
-  color: #333;
+header {
+  background-color: var(--iff-verde);
+  color: var(--iff-branco);
+  padding: 20px;
+  text-align: justify;
+}
+
+nav {
+  margin-top: 10px;
+  display: flex;
+  justify-content: justify;
+  gap: 20px;
+}
+
+nav a {
+  color: var(--iff-branco);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  padding: 30px;
+  background-color: var(--iff-branco);
+  border-radius: 8px;
+  margin: 20px auto;
+  max-width: 800px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+footer {
+  background-color: var(--iff-verde-escuro);
+  color: white;
   text-align: center;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+:root {
+  --iff-verde: #32A041;
+  --iff-verde-escuro: #034811;
+  --iff-cinza-claro: #f5f5f5;
+  --iff-branco: #ffffff;
+  --iff-azul: #98CBE0;
+}
+
+.formulario label {
+  color: white;
+}
+.formulario input {
+  background-color: white;
+  color: black;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 14px;
+  background-color: white;
+  color: #333;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #034811;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+tr:hover {
+  background-color: #e0f7e0;
+}
+
+td:nth-child(11) {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 768px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background-color: #034811;
+    color: white;
+  }
+
+  td {
+    padding: 10px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+  }
+}
+
+:root{--bg-color: #ffffff;
+  --text-color: #000000;
+  --card-bg: #f5f5f5;
+  --card-border: #ccc;
+}
+
+.dark-theme {
+  --bg-color: #121212;
+  --text-color: #f5f5f5;
+  --card-bg: #1e1e1e;
+  --card-border: #333;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
 }

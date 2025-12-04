@@ -1,0 +1,208 @@
+import os       # caminhos de arquivo
+import pandas as pd
+from flask import Flask, render_template, request, redirect, session
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from flask_migrate import Migrate
+from app import db,app
+
+migrate = Migrate(app, db)
+
+BASE = os.path.dirname(os.path.abspath(__file__))   #pega o caminho da pasta onde esta o app.py
+TEMPLATES = os.path.join(BASE, 'templates')
+
+app = Flask(__name__, template_folder=TEMPLATES)
+
+@app.route('/')
+def index():
+    caminho_ti = os.path.join(BASE, 'data', 'cadastro_equipamentos_ti.csv')
+    df = pd.read_csv(caminho_ti, encoding='latin1')
+    total = len(df)
+    return render_template('index.html', total_equipamentos=total)
+
+@app.route('/itens')         #le o arquivo csv e converte os dados p/ uma lista e envia a lista para itens.html
+def itens():
+    caminho_csv = os.path.join(BASE, 'data', 'itens.csv')
+    df = pd.read_csv(caminho_csv)
+    itens = df.to_dict(orient='records')
+    return render_template('itens.html', itens=itens)
+@app.route('/gamer', methods=['GET', 'POST'])
+def gamer():
+    if request.method == 'POST':
+        novo = EquipamentosGamer(
+            nome=request.form['nome'],
+            categoria=request.form['categoria'],
+            quantidade=request.form['quantidade']
+        )
+        db.session.add(novo)
+        db.session.commit()
+        return redirect('/gamer')
+
+    equipamentos = EquipamentosGamer.query.all()
+    return render_template('gamer.html', dados=equipamentos)
+
+@app.route('/tecnicos', methods=['GET', 'POST'])
+def tecnicos():
+    if request.method == 'POST':
+        novo = EquipamentosTecnicos (
+            nome = request.form['nome'],
+            garantia = request.form['garantia'],
+            fabricante_marca = request.form['fabricante_marca'],
+            modelo= request.form['modelo'],
+            numero_serie= request.form['numero_serie'],
+            data_fabricacao= request.form['data_fabricacao'],
+            validade= request.form['validade'],
+            condicao= request.form['condicao'],
+            localizacao= request.form['localizacao'],
+            patrimonio= request.form['patrimonio'],
+            quantidade= request.form['quantidade'],
+        )
+        db.session.add(novo)
+        db.session.commit()
+        return redirect('/tecnicos')
+
+    equipamentos = EquipamentosTecnicos.query.all ()
+    return render_template('tecnicos.html', dados=equipamentos)
+
+
+@app.route('/ti', methods=['GET', 'POST'])
+def ti():
+    if request.method == 'POST':
+        novo = EquipamentosTi(
+            nome=request.form['nome'],
+            garantia=float(request.form['garantia']),
+            fabricante_marca=request.form['fabricante_marca'],
+            modelo=request.form['modelo'],
+            numero_serie=request.form['numero_serie'],
+            data_fabricacao=datetime.strptime(request.form['data_fabricacao'], '%Y-%m-%d'),
+            validade=request.form.get('validade') == 'on',
+            condicao=request.form['condicao'],
+            localizacao=request.form['localizacao'],
+            patrimonio=request.form['patrimonio'],
+            quantidade=int(request.form['quantidade'])
+        )
+        db.session.add(novo)
+        db.session.commit()
+        return redirect('/ti')
+
+    equipamentos = EquipamentosTi.query.all()
+    return render_template('ti.html', dados=equipamentos)
+
+@app.route('/notasFiscais', methods=['GET', 'POST'])
+def notas_fiscais():
+    if request.method == 'POST':
+        novo = NotasFiscais(
+            descricao_itens = request.form['descricao_itens'],
+            numero_nf = float(request.form['numero_nf']),
+            data_emissao = datetime.strptime(request.form['data_emissao'], '%Y-%m-%d'),
+            fornecedor = request.form['fornecedor'],
+            cnpj = float(request.form['cnpj']),
+            quantidade = int(request.form['quantidade']),
+            valor_total = float(request.form['valor_total'])
+
+        )
+        db.session.add(novo)
+        db.session.commit()
+        return redirect('/notasFiscais')
+
+    notas = NotasFiscais.query.all()
+    return render_template('notasFiscais.html', notas=notas)
+
+@app.route('/maker', methods=['GET', 'POST'])
+def maker():
+    if request.method == 'POST':
+        novo = EquipamentosConsumo(
+            nome = request.form['nome'],
+            garantia = request.form['garantia'],
+            cor = request.form['cor'],
+            fabricante_marca = request.form['fabricante_marca'],
+            modelo = request.form['modelo'],
+            numero_serie = request.form['numero_serie'],
+            data_fabricacao = datetime.strptime(request.form['data_fabricacao'], '%Y-%m-%d'),
+            validade = request.form.get('validade') == 'on',
+            condicao_localizacao = request.form['condicao_localizacao'],
+            patrimonio = request.form['patrimonio'],
+            quantidade = int(request.form['quantidade']),
+        )
+        db.session.add(novo)
+        db.session.commit()
+        return redirect('/maker')
+
+    consumo = EquipamentosConsumo.query.all()
+    return render_template('maker.html', consumo=consumo)
+
+
+@app.route('/formulario')
+def formulario():
+    return render_template('formulario.html')
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///labmaker.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+class EquipamentosTi(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100))
+    garantia = db.Column(db.Float)
+    fabricante_marca = db.Column(db.String(100))
+    modelo = db.Column(db.String(100))
+    numero_serie = db.Column(db.String(100))
+    data_fabricacao = db.Column(db.DateTime)
+    validade = db.Column(db.Boolean)
+    condicao = db.Column(db.String(100))
+    localizacao = db.Column(db.String(100))
+    patrimonio = db.Column(db.String(100))
+    quantidade = db.Column(db.Integer)
+
+
+class EquipamentosTecnicos(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100))
+    garantia = db.Column(db.String(100))
+    fabricante_marca = db.Column(db.String(100))
+    modelo = db.Column(db.String(100))
+    numero_serie = db.Column(db.String(200))
+    data_fabricacao = db.Column(db.DateTime)
+    validade = db.Column(db.String(100))
+    condicao = db.Column(db.String(100))
+    localizacao = db.Column(db.String(100))
+    patrimonio = db.Column(db.String(100))
+    quantidade = db.Column(db.Integer)
+
+class NotasFiscais(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    descricao_itens = db.Column(db.String(100))
+    numero_nf = db.Column(db.String(100))
+    data_emissao = db.Column(db.DateTime)
+    fornecedor = db.Column(db.String(100))
+    cnpj = db.Column(db.Float)
+    quantidade = db.Column(db.Integer)
+    valor_total = db.Column(db.Float)
+
+class EquipamentosConsumo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100))
+    garantia = db.Column(db.String(100))
+    cor = db.Column(db.String(100))
+    fabricante_marca = db.Column(db.String(100))
+    modelo = db.Column(db.String(100))
+    numero_serie = db.Column(db.Float)
+    data_fabricacao = db.Column(db.DateTime)
+    validade = db.Column(db.String(100))
+    condicao_localizacao = db.Column(db.String(100))
+    patrimonio = db.Column(db.String(100))
+    quantidade = db.Column(db.Integer)
+
+class EquipamentosGamer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100))
+    categoria = db.Column(db.String(100))
+    quantidade = db.Column(db.Integer)
+
+with app.app_context():
+    db.create_all()
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

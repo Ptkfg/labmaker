@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}LabMaker{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<body>
+
+
+  <div class="barra-topo">
+    <span>MINISTÉRIO DA EDUCAÇÃO</span>
+  </div>
+
+  <header>
+    <div style="display: flex; align-items: center;">
+      <img src="{{ url_for('static', filename='img/logo_iff.png') }}" alt="Logo IFF" class="logo">
+      <h1>Instituto Federal Fluminense</h1>
+    </div>
+    <nav>
+      <a href="{{ url_for('home') }}">Início</a>
+      <a href="{{ url_for('cadastro') }}">Cadastro</a>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('logout') }}">Sair</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">Login</a>
+      {% endif %}
+    </nav>
+  </header>
+<button id="theme-toggle">🌙 Alternar Tema</button>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>Campus Itaboraí - Instituto Federal Fluminense</p>
+      <p> Email:</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro - LabMaker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% extends 'base.html' %}
+
+        {% block title %}Cadastro - LabMaker{% endblock %}
+
+        {% block content %}
+        <h2>Cadastro de Usuário</h2>
+
+        <label>Perfil:</label><br>
+    <select name="perfil">
+      <option value="visitante">Visitante</option>
+      <option value="tecnico">Técnico</option>
+      <option value="admin">Administrador</option>
+    </select><br><br>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('cadastro') }}">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" name="senha" required>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <p>Já tem conta? <a href="{{ url_for('login') }}">Faça login</a></p>
+    </div>
+    {% endblock %}
+
+</body>
+</html>

@@ -2,6 +2,12 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
+
+{% extends 'base.html' %}
+
+{% block title %}Login - LabMaker{% endblock %}
+
+{% block content %}
   <title>Equipamentos TI</title>
   <style>
     table { border-collapse: collapse; width: 100%; }
@@ -55,9 +61,35 @@
   <table>
     <thead>
       <tr>
+        {% if dados and dados|length > 0 %}
+  <table>
+    <thead>
+      <tr>
         {% for coluna in dados[0].keys() %}
           <th>{{ coluna }}</th>
         {% endfor %}
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for linha in dados %}
+        <tr>
+          {% for valor in linha.values() %}
+            <td>{{ valor }}</td>
+          {% endfor %}
+          <td>
+            <form method="POST" action="/ti/deletar">
+              <input type="hidden" name="nome" value="{{ linha.nome }}">
+              <button type="submit">Excluir</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p style="color: gray;">Nenhum equipamento TI cadastrado.</p>
+{% endif %}
         <th>Ações</th>
       </tr>
     </thead>
@@ -83,5 +115,6 @@
     Voltar para a Página Principal
   </button>
 </a>
+{% endblock %}
 </body>
 </html>

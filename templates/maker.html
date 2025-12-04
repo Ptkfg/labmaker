@@ -3,47 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>{{ maker }}</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1, h2 {
-      color: #333;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    form {
-      margin-bottom: 20px;
-    }
-    button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
 
-    }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-  </style>
-</head>
 <body>
+
+{% extends 'base.html' %}
+
+{% block title %}Login - LabMaker{% endblock %}
+
+{% block content %}
   <h1>{{ maker }}</h1>
 
   <h2>Cadastro equipamentos de consumo</h2>
@@ -85,14 +52,33 @@
 
   </form>
     <table>
-    <thead>
+    {% if dados %}
+  <thead>
+    <tr>
+      {% for coluna in dados[0].keys() %}
+        <th>{{ coluna }}</th>
+      {% endfor %}
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for linha in dados %}
       <tr>
-        {% for coluna in dados[0].keys() %}
-          <th>{{ coluna }}</th>
+        {% for valor in linha.values() %}
+          <td>{{ valor }}</td>
         {% endfor %}
-        <th>Ações</th>
+        <td>
+          <form method="POST" action="/maker/deletar">
+            <input type="hidden" name="nome" value="{{ linha.nome }}">
+            <button type="submit">Excluir</button>
+          </form>
+        </td>
       </tr>
-    </thead>
+    {% endfor %}
+  </tbody>
+{% else %}
+  <p style="margin-top: 20px;">Nenhum equipamento cadastrado ainda.</p>
+{% endif %}
     <tbody>
       {% for linha in dados %}
         <tr>
@@ -115,5 +101,6 @@
     Voltar para a Página Principal
   </button>
 </a>
+{% endblock %}
 </body>
 </html>

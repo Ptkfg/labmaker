@@ -10,6 +10,11 @@
   </style>
 </head>
 <body>
+{% extends 'base.html' %}
+
+{% block title %}Login - LabMaker{% endblock %}
+
+{% block content %}
   <h1>{{ tecnicos }}</h1>
   <h2>Adicionar novos equioamentos Tecnicos </h2>
   <form method="post" action="tecnicos.html">
@@ -79,5 +84,6 @@
     Voltar para a Página Principal
   </button>
 </a>
+{% endblock %}
 </body>
 </html>
